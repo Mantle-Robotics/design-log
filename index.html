@@ -3,16 +3,19 @@
   :root{
     --bg:#FFFFFF; --ink:#141412; --ink-2:#4A4A46; --mute:#8A8A84;
     --rule:#E6E5E1; --rule-strong:#C9C8C2; --chip:#F2F1ED; --chip-on:#141412; --chip-on-ink:#FFFFFF; --note:#FAF8F2; --field:#FFFFFF;
+    --todo:#8A8A84; --doing:#B8860B; --done:#2E7D4F; --blocked:#B3261E;
     --font:"Helvetica Neue", Helvetica, Arial, sans-serif;
-    --col:44rem;
+    --col:48rem;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
       --bg:#0F0F0E; --ink:#F1F0EC; --ink-2:#BDBCB6; --mute:#7C7B75; --rule:#262623; --rule-strong:#3B3A36; --chip:#1C1C1A; --chip-on:#F1F0EC; --chip-on-ink:#0F0F0E; --note:#171716; --field:#151514;
+      --doing:#D4A017; --done:#5DBB7F; --blocked:#F28B82;
     }
   }
   :root[data-theme="dark"]{
     --bg:#0F0F0E; --ink:#F1F0EC; --ink-2:#BDBCB6; --mute:#7C7B75; --rule:#262623; --rule-strong:#3B3A36; --chip:#1C1C1A; --chip-on:#F1F0EC; --chip-on-ink:#0F0F0E; --note:#171716; --field:#151514;
+    --doing:#D4A017; --done:#5DBB7F; --blocked:#F28B82;
   }
   *{box-sizing:border-box}
   body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--font); font-size:16px; line-height:1.55; padding-inline:clamp(16px,5vw,48px); padding-block:0; -webkit-font-smoothing:antialiased}
@@ -20,51 +23,131 @@
   a:hover{text-decoration-color:var(--ink)}
   :focus-visible{outline:2px solid var(--ink); outline-offset:3px; border-radius:2px}
   .wrap{max-width:var(--col); margin:0 auto}
-  button,input,textarea{font:inherit; color:inherit}
+  button,input,textarea,select{font:inherit; color:inherit}
+  [hidden]{display:none !important}
 
-  header{padding-block:32px 28px; border-bottom:1px solid var(--rule); display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap}
+  header{padding-block:32px 0; display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap}
   header h1{margin:0 0 4px; font-size:1.5rem; font-weight:700; letter-spacing:-.02em}
   header .sub{margin:0; color:var(--ink-2); font-size:.95rem}
+  .hbtns{display:flex; gap:8px; flex-wrap:wrap}
   .btn{border:1px solid var(--ink); background:var(--ink); color:var(--bg); border-radius:6px; padding:9px 16px; font-size:.92rem; font-weight:500; cursor:pointer; white-space:nowrap}
   .btn:hover{opacity:.85}
   .btn.ghost{background:transparent; color:var(--ink)}
+  .btn.sm{padding:5px 10px; font-size:.8rem}
   .btn[disabled]{opacity:.4; cursor:default}
+
+  .tabs{display:flex; gap:0; border-bottom:1px solid var(--rule); margin-top:22px}
+  .tab{background:none; border:0; border-bottom:2px solid transparent; margin-bottom:-1px; padding:10px 14px; font-size:.95rem; color:var(--mute); cursor:pointer}
+  .tab[aria-selected="true"]{color:var(--ink); border-bottom-color:var(--ink); font-weight:500}
+  .tab .n{color:var(--mute); font-size:.8rem; margin-left:6px; font-variant-numeric:tabular-nums}
 
   .banner{margin-top:16px; background:var(--note); border:1px solid var(--rule); border-radius:8px; padding:12px 16px; font-size:.86rem; color:var(--ink-2)}
   .banner b{color:var(--ink); font-weight:600}
   .banner code{font-family:Menlo,Consolas,monospace; font-size:.85em; background:var(--chip); padding:1px 5px; border-radius:3px}
 
-  .project{padding-block:24px; border-bottom:1px solid var(--rule); display:flex; justify-content:space-between; gap:24px; flex-wrap:wrap; align-items:baseline}
-  .project p{margin:0; max-width:36em; color:var(--ink-2)}
-  .project .meta{font-size:.82rem; color:var(--mute); line-height:1.5; font-variant-numeric:tabular-nums}
-
-  .members{padding-block:24px; border-bottom:1px solid var(--rule); display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+  .members{padding-block:20px; border-bottom:1px solid var(--rule); display:flex; flex-wrap:wrap; gap:8px; align-items:center}
   .members .label{font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--mute); margin-right:8px}
   .chip{border:1px solid var(--rule-strong); background:var(--chip); color:var(--ink); border-radius:999px; padding:6px 12px; font-size:.86rem; cursor:pointer; display:inline-flex; gap:8px; align-items:center}
   .chip .n{color:var(--mute); font-variant-numeric:tabular-nums}
   .chip[aria-pressed="true"]{background:var(--chip-on); color:var(--chip-on-ink); border-color:var(--chip-on)}
   .chip[aria-pressed="true"] .n{color:inherit; opacity:.7}
 
-  .summary{padding-block:20px 0; font-size:.85rem; color:var(--mute)}
+  .summary{padding-block:18px 0; font-size:.85rem; color:var(--mute)}
   .summary strong{color:var(--ink); font-weight:500}
 
+  /* ---- log view ---- */
   .log{list-style:none; margin:0; padding:0}
-  .entry{display:grid; grid-template-columns:8.5rem 1fr; gap:24px; padding-block:28px; border-bottom:1px solid var(--rule)}
-  .entry[hidden]{display:none}
+  .entry{display:grid; grid-template-columns:8.5rem 1fr; gap:24px; padding-block:26px; border-bottom:1px solid var(--rule)}
   .when{font-size:.85rem; color:var(--mute); line-height:1.5; padding-top:3px; font-variant-numeric:tabular-nums}
   .when .wk{display:block; font-size:.75rem; letter-spacing:.04em; text-transform:uppercase}
   .entry h2{margin:0 0 6px; font-size:1.15rem; font-weight:700; letter-spacing:-.015em; line-height:1.3}
+  .tag{display:inline-block; font-size:.74rem; padding:2px 8px; border-radius:4px; background:var(--chip); color:var(--ink-2); border:1px solid var(--rule); margin:0 6px 8px 0; text-decoration:none; cursor:pointer}
+  .tag.cat{font-weight:600; letter-spacing:.02em; text-transform:uppercase; font-size:.68rem}
   .who{display:flex; flex-wrap:wrap; gap:6px; margin:0 0 14px}
   .who span{font-size:.78rem; padding:2px 8px; border:1px solid var(--rule-strong); border-radius:999px; color:var(--ink-2)}
   .who span.dim{opacity:.35}
-  .entry p{margin:0 0 12px; max-width:36em; white-space:pre-line}
+  .entry p,.tdesc{margin:0 0 12px; max-width:38em; white-space:pre-line}
   .contrib{margin:14px 0 0; padding:0 0 0 14px; list-style:none; border-left:2px solid var(--rule-strong); display:grid; gap:8px}
-  .contrib li{font-size:.93rem; color:var(--ink-2); max-width:36em; white-space:pre-line}
+  .contrib li{font-size:.93rem; color:var(--ink-2); max-width:38em; white-space:pre-line}
   .contrib li b{color:var(--ink); font-weight:600}
   .contrib li.hl{color:var(--ink)}
   .links{margin:12px 0 0; font-size:.85rem; display:flex; gap:14px; flex-wrap:wrap}
   .logged{margin-top:10px; font-size:.75rem; color:var(--mute)}
   @media (max-width:560px){ .entry{grid-template-columns:1fr; gap:8px} }
+
+  /* ---- board view ---- */
+  .cat{padding-block:26px; border-bottom:1px solid var(--rule)}
+  .cat-h{display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin-bottom:12px}
+  .cat-h h2{margin:0; font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; color:var(--mute); font-weight:600}
+  .cat-h .prog{font-size:.78rem; color:var(--mute); font-variant-numeric:tabular-nums}
+  .cat-h button{background:none; border:0; color:var(--mute); font-size:.82rem; cursor:pointer; text-decoration:underline; text-underline-offset:3px; text-decoration-color:var(--rule-strong); padding:0}
+  .cat-h button:hover{color:var(--ink)}
+  .tasks{list-style:none; margin:0; padding:0; display:grid; gap:6px}
+  .kids{list-style:none; margin:6px 0 0 14px; padding:0 0 0 14px; border-left:1px solid var(--rule-strong); display:grid; gap:6px}
+  .task{border:1px solid var(--rule); border-radius:8px; background:var(--bg)}
+  .task.st-done > .trow .ttitle{color:var(--mute); text-decoration:line-through; text-decoration-color:var(--rule-strong)}
+  .task.grp > .trow .ttitle{font-weight:600}
+  .trow{display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center; padding:10px 12px; cursor:pointer}
+  .trow:hover{background:var(--note)}
+  .dot{width:10px; height:10px; border-radius:50%; background:var(--todo); flex:none}
+  .st-doing > .trow .dot,.tn.st-doing .dot{background:var(--doing)} .st-done > .trow .dot,.tn.st-done .dot{background:var(--done)} .st-blocked > .trow .dot,.tn.st-blocked .dot{background:var(--blocked)}
+  .ttitle{font-weight:500; line-height:1.35}
+  .tmeta{display:flex; gap:4px 10px; flex-wrap:wrap; margin-top:3px}
+  .tmeta span{font-size:.74rem; color:var(--mute)}
+  .tmeta .own{color:var(--ink-2)}
+  .tmeta .own.dim{opacity:.4}
+  .bar{height:3px; background:var(--rule); border-radius:2px; margin-top:6px; max-width:220px; overflow:hidden}
+  .bar i{display:block; height:100%; background:var(--done)}
+  .stsel{border:1px solid var(--rule-strong); border-radius:999px; background:var(--chip); padding:3px 26px 3px 10px; font-size:.76rem; cursor:pointer; appearance:none; -webkit-appearance:none; background-image:linear-gradient(45deg,transparent 50%,var(--mute) 50%),linear-gradient(135deg,var(--mute) 50%,transparent 50%); background-position:calc(100% - 13px) 55%,calc(100% - 9px) 55%; background-size:4px 4px; background-repeat:no-repeat}
+  .stsel.doing{color:var(--doing); border-color:var(--doing)} .stsel.done{color:var(--done); border-color:var(--done)} .stsel.blocked{color:var(--blocked); border-color:var(--blocked)}
+  .stpill{display:inline-block; font-size:.7rem; padding:1px 7px; border-radius:999px; border:1px solid var(--rule-strong); color:var(--mute); vertical-align:middle; margin-left:6px}
+  .stpill.doing{color:var(--doing); border-color:var(--doing)} .stpill.done{color:var(--done); border-color:var(--done)} .stpill.blocked{color:var(--blocked); border-color:var(--blocked)}
+  .tbody{border-top:1px solid var(--rule); padding:14px 14px 14px 32px; font-size:.93rem}
+  .tbody .tdesc{color:var(--ink-2); font-size:.93rem}
+  .tbody h4{margin:14px 0 8px; font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--mute); font-weight:600}
+  .hist{list-style:none; margin:0; padding:0; display:grid; gap:10px}
+  .hist li{display:grid; grid-template-columns:6.2rem 1fr; gap:12px; font-size:.9rem}
+  .hist .d{color:var(--mute); font-size:.8rem; font-variant-numeric:tabular-nums; padding-top:2px}
+  .hist b{font-weight:600}
+  .hist .c{color:var(--ink-2); margin-top:2px; white-space:pre-line}
+  .hist .c small{color:var(--mute)}
+  .tacts{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px}
+  .tnone{color:var(--mute); font-size:.88rem}
+  .crumb{color:var(--mute)}
+  @media (max-width:560px){ .kids{margin-left:6px; padding-left:8px} .tbody{padding-left:14px} .hist li{grid-template-columns:1fr; gap:2px} }
+
+  /* ---- tree view ---- */
+  .chev{background:none; border:0; padding:0; width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; color:var(--mute); border-radius:4px; flex:none}
+  .chev:hover{background:var(--chip); color:var(--ink)}
+  .chev svg{width:12px; height:12px; transition:transform .15s}
+  .chev.open svg{transform:rotate(90deg)}
+  .chev.leaf{visibility:hidden}
+  @media (prefers-reduced-motion:reduce){ .chev svg{transition:none} }
+  .trow.hasc{grid-template-columns:auto auto 1fr auto}
+  .ttools{display:flex; gap:14px; justify-content:flex-end; padding-block:16px 0; font-size:.82rem}
+  .ttools button{background:none; border:0; padding:0; color:var(--mute); cursor:pointer; text-decoration:underline; text-underline-offset:3px; text-decoration-color:var(--rule-strong)}
+  .ttools button:hover{color:var(--ink)}
+  .tcat{padding-block:22px; border-bottom:1px solid var(--rule)}
+  .tcat-h{display:flex; align-items:center; gap:10px; margin-bottom:6px}
+  .tcat-h h2{margin:0; font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; color:var(--mute); font-weight:600}
+  .tcat-h .prog{font-size:.78rem; color:var(--mute); font-variant-numeric:tabular-nums}
+  .tree,.tree ul{list-style:none; margin:0; padding:0}
+  .tree ul{margin-left:9px; padding-left:22px; border-left:1px solid var(--rule-strong)}
+  .tree li{position:relative}
+  .tree ul li::before{content:""; position:absolute; left:-22px; top:16px; width:16px; height:1px; background:var(--rule-strong)}
+  .tn{display:flex; align-items:center; gap:8px; min-height:32px; padding:2px 6px 2px 0; border-radius:6px}
+  .tn:hover{background:var(--note)}
+  .tn .tt{cursor:pointer; line-height:1.3}
+  .tn .tt:hover{text-decoration:underline; text-underline-offset:3px; text-decoration-color:var(--rule-strong)}
+  .tn.grp .tt{font-weight:600}
+  .tn.done .tt{color:var(--mute); text-decoration:line-through; text-decoration-color:var(--rule-strong)}
+  .tn .tc{font-size:.74rem; color:var(--mute); font-variant-numeric:tabular-nums; white-space:nowrap}
+  .tn .ti{display:flex; gap:3px; margin-left:auto}
+  .tn .ti span{font-size:.64rem; font-weight:600; width:22px; height:22px; border-radius:50%; background:var(--chip); border:1px solid var(--rule-strong); color:var(--ink-2); display:inline-flex; align-items:center; justify-content:center; letter-spacing:.02em}
+  .tn .ti span.dim{opacity:.35}
+  .tn .stpill{margin-left:0}
+  .tnone-t{color:var(--mute); font-size:.88rem; padding:4px 0}
+  @media (max-width:560px){ .tree ul{padding-left:14px} .tree ul li::before{left:-14px; width:9px} }
 
   .state{padding-block:56px; text-align:center; color:var(--mute)}
   .state h2{font-size:1.1rem; font-weight:600; color:var(--ink); margin:0 0 8px}
@@ -72,7 +155,7 @@
 
   footer{padding-block:28px 48px; font-size:.8rem; color:var(--mute); display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap}
 
-  /* ---- add-entry form ---- */
+  /* ---- forms ---- */
   .modal{position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:flex-start; justify-content:center; padding:24px 16px; z-index:10; overflow-y:auto}
   .modal.open{display:flex}
   .panel{background:var(--bg); border:1px solid var(--rule); border-radius:10px; width:min(680px,100%); padding:24px clamp(16px,4vw,32px) 28px; margin-block:auto}
@@ -80,9 +163,9 @@
   .f{display:grid; gap:6px; margin-bottom:18px}
   .f label{font-size:.82rem; font-weight:600; color:var(--ink-2)}
   .f .hint{font-size:.78rem; color:var(--mute); font-weight:400}
-  .f input[type=text],.f input[type=date],.f textarea{width:100%; border:1px solid var(--rule-strong); border-radius:6px; background:var(--field); padding:9px 11px; font-size:.95rem; line-height:1.45}
+  .f input[type=text],.f input[type=date],.f textarea,.f select{width:100%; border:1px solid var(--rule-strong); border-radius:6px; background:var(--field); padding:9px 11px; font-size:.95rem; line-height:1.45}
   .f textarea{min-height:88px; resize:vertical}
-  .f input:focus,.f textarea:focus{outline:2px solid var(--ink); outline-offset:1px; border-color:var(--ink)}
+  .f input:focus,.f textarea:focus,.f select:focus{outline:2px solid var(--ink); outline-offset:1px; border-color:var(--ink)}
   .row{display:grid; grid-template-columns:1fr 1fr; gap:16px}
   @media (max-width:520px){ .row{grid-template-columns:1fr} }
   .checks{display:flex; flex-wrap:wrap; gap:8px}
@@ -91,13 +174,10 @@
   .checks input{margin:0; accent-color:var(--ink)}
   .who-did{display:grid; gap:12px}
   .who-did .one{display:grid; gap:4px}
-  .who-did .one[hidden]{display:none}
   .who-did .one label{font-size:.82rem; color:var(--ink-2)}
   .who-did .one textarea{min-height:56px}
-  .who-did .none{font-size:.85rem; color:var(--mute); font-style:normal}
-  .err{color:#B3261E; font-size:.85rem; margin:-8px 0 14px}
-  :root[data-theme="dark"] .err{color:#F28B82}
-  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .err{color:#F28B82} }
+  .who-did .none{font-size:.85rem; color:var(--mute)}
+  .err{color:var(--blocked); font-size:.85rem; margin:-8px 0 14px}
   .actions{display:flex; justify-content:flex-end; gap:10px; margin-top:6px; align-items:center}
   .actions .status{margin-right:auto; font-size:.85rem; color:var(--mute)}
   @media (prefers-reduced-motion:no-preference){ html{scroll-behavior:smooth} }
@@ -106,10 +186,9 @@
 <script>
 /* ============================================================
    CONFIG
-   BACKEND_URL: the Google Apps Script web-app URL (see setup in
-   the reply / mantle-log-backend.gs). Leave empty to run in
-   browser-only mode: entries are kept in this browser's storage
-   so the page can be tried before the backend exists.
+   BACKEND_URL: the Google Apps Script web-app URL from
+   mantle-log-backend.gs. Leave empty for browser-only mode
+   (entries and tasks stay in this browser).
    ============================================================ */
 const BACKEND_URL = "https://script.google.com/macros/s/AKfycbyzVt2cq7GBW1C3IXq-DQPjI50txGUa8CIa9V2KS1wtnu1bqnUnxzp3fzO9meh7GgJX/exec";
 
@@ -127,6 +206,11 @@ const MEMBERS = [
   ["Kishan Muhundhan", "Robotics hardware"],
   ["Shiv Patel", "Robotics hardware"]
 ];
+
+// Task categories, in the order they appear on the board.
+const CATEGORIES = ["Mechanical", "Hydraulics", "Electrical", "Software", "Field & testing", "Business"];
+
+const STATUSES = [["todo", "To do"], ["doing", "In progress"], ["blocked", "Blocked"], ["done", "Done"]];
 </script>
 
 <div class="wrap">
@@ -135,15 +219,19 @@ const MEMBERS = [
       <h1 id="title"></h1>
       <p class="sub" id="subtitle"></p>
     </div>
-    <button class="btn" id="add" type="button">Add entry</button>
+    <div class="hbtns">
+      <button class="btn ghost" id="add-task" type="button">New task</button>
+      <button class="btn" id="add" type="button">Add entry</button>
+    </div>
   </header>
 
   <div class="banner" id="banner" hidden></div>
 
-  <section class="project">
-    <p id="blurb"></p>
-    <div class="meta" id="meta"></div>
-  </section>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab-board" aria-selected="true" type="button">Board<span class="n" id="n-tasks"></span></button>
+    <button class="tab" role="tab" id="tab-tree" aria-selected="false" type="button">Tree</button>
+    <button class="tab" role="tab" id="tab-log" aria-selected="false" type="button">Log<span class="n" id="n-entries"></span></button>
+  </div>
 
   <section class="members" id="members" aria-label="Filter by member">
     <span class="label">Members</span>
@@ -151,7 +239,9 @@ const MEMBERS = [
 
   <div class="summary" id="summary"></div>
 
-  <ol class="log" id="log"></ol>
+  <div id="view-board"></div>
+  <div id="view-tree" hidden></div>
+  <ol class="log" id="view-log" hidden></ol>
 
   <div class="state" id="state" hidden>
     <h2 id="state-h"></h2>
@@ -165,54 +255,53 @@ const MEMBERS = [
   </footer>
 </div>
 
+<!-- ENTRY FORM -->
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="form-h">
   <form class="panel" id="form" novalidate>
     <h2 id="form-h">New entry</h2>
-
     <div class="row">
-      <div class="f">
-        <label for="f-date">Date of the work</label>
-        <input type="date" id="f-date" name="date" required>
-      </div>
-      <div class="f">
-        <label for="f-by">Logged by</label>
-        <input type="text" id="f-by" name="by" list="member-names" placeholder="Your name" autocomplete="off" required>
-        <datalist id="member-names"></datalist>
-      </div>
+      <div class="f"><label for="f-date">Date of the work</label><input type="date" id="f-date" required></div>
+      <div class="f"><label for="f-by">Logged by</label><input type="text" id="f-by" list="member-names" placeholder="Your name" autocomplete="off" required><datalist id="member-names"></datalist></div>
     </div>
-
     <div class="f">
-      <label for="f-title">Title <span class="hint">one line, what got done</span></label>
-      <input type="text" id="f-title" name="title" required maxlength="140">
+      <label for="f-task">Related task <span class="hint">attaches this entry to a task or subtask on the board</span></label>
+      <select id="f-task"><option value="">None</option></select>
     </div>
-
-    <div class="f">
-      <label for="f-summary">Progress <span class="hint">what was worked on, decisions made, what's next</span></label>
-      <textarea id="f-summary" name="summary" required></textarea>
+    <div class="f" id="f-status-wrap" hidden>
+      <label for="f-status-sel">Task status after this work</label>
+      <select id="f-status-sel"></select>
     </div>
-
-    <div class="f">
-      <label>Who worked on this</label>
-      <div class="checks" id="f-members"></div>
+    <div class="f" id="f-cat-wrap">
+      <label for="f-cat">Category <span class="hint">optional</span></label>
+      <select id="f-cat"><option value="">None</option></select>
     </div>
-
-    <div class="f">
-      <label>Individual contributions <span class="hint">one line per selected member</span></label>
-      <div class="who-did" id="f-contrib"><span class="none">Select members above.</span></div>
-    </div>
-
-    <div class="f">
-      <label for="f-links">Links <span class="hint">optional, one per line: CAD, docs, photos. Use "Label | URL" to name a link</span></label>
-      <textarea id="f-links" name="links" style="min-height:56px"></textarea>
-    </div>
-
+    <div class="f"><label for="f-title">Title <span class="hint">one line, what got done</span></label><input type="text" id="f-title" required maxlength="140"></div>
+    <div class="f"><label for="f-summary">Progress <span class="hint">what was worked on, decisions made, what's next</span></label><textarea id="f-summary" required></textarea></div>
+    <div class="f"><label>Who worked on this</label><div class="checks" id="f-members"></div></div>
+    <div class="f"><label>Individual contributions <span class="hint">one line per selected member</span></label><div class="who-did" id="f-contrib"><span class="none">Select members above.</span></div></div>
+    <div class="f"><label for="f-links">Links <span class="hint">optional, one per line: CAD, docs, photos. Use "Label | URL" to name a link</span></label><textarea id="f-links" style="min-height:56px"></textarea></div>
     <div class="err" id="f-err" hidden></div>
+    <div class="actions"><span class="status" id="f-status"></span><button class="btn ghost" type="button" id="cancel">Cancel</button><button class="btn" type="submit" id="save">Save entry</button></div>
+  </form>
+</div>
 
-    <div class="actions">
-      <span class="status" id="f-status"></span>
-      <button class="btn ghost" type="button" id="cancel">Cancel</button>
-      <button class="btn" type="submit" id="save">Save entry</button>
+<!-- TASK FORM -->
+<div class="modal" id="tmodal" role="dialog" aria-modal="true" aria-labelledby="tform-h">
+  <form class="panel" id="tform" novalidate>
+    <h2 id="tform-h">New task</h2>
+    <div class="row">
+      <div class="f"><label for="t-cat">Category</label><select id="t-cat"></select></div>
+      <div class="f"><label for="t-parent">Under <span class="hint">a subsystem or task, or top level</span></label><select id="t-parent"><option value="">Top level in this category</option></select></div>
     </div>
+    <div class="f"><label for="t-title">Name</label><input type="text" id="t-title" required maxlength="140" placeholder="e.g. Boom, or Boom joint angle sensing"></div>
+    <div class="f"><label for="t-desc">Description <span class="hint">what done looks like, constraints, where to start</span></label><textarea id="t-desc"></textarea></div>
+    <div class="row">
+      <div class="f"><label for="t-status">Status</label><select id="t-status"></select></div>
+      <div class="f"><label for="t-by">Created by</label><input type="text" id="t-by" list="member-names" placeholder="Your name" autocomplete="off"></div>
+    </div>
+    <div class="f"><label>Owners</label><div class="checks" id="t-owners"></div></div>
+    <div class="err" id="t-err" hidden></div>
+    <div class="actions"><span class="status" id="t-status-msg"></span><button class="btn ghost" type="button" id="t-cancel">Cancel</button><button class="btn" type="submit" id="t-save">Save task</button></div>
   </form>
 </div>
 
@@ -220,178 +309,335 @@ const MEMBERS = [
 (function(){
   const $ = s => document.querySelector(s);
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  const fmt = d => { const t = new Date(d + "T12:00:00"); return isNaN(t) ? d : t.toLocaleDateString("en-CA", {year:"numeric", month:"short", day:"numeric"}); };
+  const fmt = d => { const t = new Date(d + "T12:00:00"); return isNaN(t) ? (d || "") : t.toLocaleDateString("en-CA", {year:"numeric", month:"short", day:"numeric"}); };
+  const fmtS = d => { const t = new Date(d + "T12:00:00"); return isNaN(t) ? (d || "") : t.toLocaleDateString("en-CA", {month:"short", day:"numeric"}); };
   const weekday = d => { const t = new Date(d + "T12:00:00"); return isNaN(t) ? "" : t.toLocaleDateString("en-CA", {weekday:"long"}); };
   const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
   const names = MEMBERS.map(m => m[0]);
+  const stLabel = Object.fromEntries(STATUSES);
   const LOCAL_KEY = "mantle-design-log";
   const local = !BACKEND_URL;
 
   $("#title").textContent = PROJECT.team + " · Design Log";
   $("#subtitle").textContent = PROJECT.title;
-  $("#blurb").textContent = PROJECT.blurb;
   $("#foot-left").textContent = PROJECT.team + " · " + PROJECT.course;
-  if (local){
-    const b = $("#banner"); b.hidden = false;
-    b.innerHTML = "<b>Browser-only mode.</b> Entries are saved in this browser until <code>BACKEND_URL</code> is set, so nobody else can see them yet.";
-  }
+  if (local){ const b = $("#banner"); b.hidden = false; b.innerHTML = "<b>Browser-only mode.</b> Entries and tasks are saved in this browser until <code>BACKEND_URL</code> is set, so nobody else can see them yet."; }
 
   // ---------- storage ----------
-  async function loadEntries(){
-    if (local){ try{ return JSON.parse(localStorage.getItem(LOCAL_KEY) || "[]"); } catch(_){ return []; } }
+  function readLocal(){ try{ const v = JSON.parse(localStorage.getItem(LOCAL_KEY) || "{}"); return {entries: v.entries || [], tasks: v.tasks || []}; } catch(_){ return {entries:[], tasks:[]}; } }
+  function writeLocal(d){ try{ localStorage.setItem(LOCAL_KEY, JSON.stringify(d)); } catch(_){ throw new Error("This browser is blocking storage."); } }
+  async function loadAll(){
+    if (local) return readLocal();
     const res = await fetch(BACKEND_URL + "?t=" + Date.now(), {cache:"no-store"});
     if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-    return Array.isArray(data) ? data : (data.entries || []);
+    const d = await res.json();
+    if (Array.isArray(d)) return {entries: d, tasks: []};   // older backend
+    return {entries: d.entries || [], tasks: d.tasks || []};
   }
-  async function saveEntry(e){
-    if (local){
-      const all = await loadEntries(); all.push(e);
-      try{ localStorage.setItem(LOCAL_KEY, JSON.stringify(all)); } catch(_){ throw new Error("This browser is blocking storage."); }
-      return;
-    }
-    // text/plain avoids a CORS preflight; the script parses the JSON body.
-    const res = await fetch(BACKEND_URL, {method:"POST", body: JSON.stringify(e)});
+  async function post(payload){
+    const res = await fetch(BACKEND_URL, {method:"POST", body: JSON.stringify(payload)});
     if (!res.ok) throw new Error("HTTP " + res.status);
     const out = await res.json().catch(() => ({ok:true}));
     if (out && out.ok === false) throw new Error(out.error || "Save failed");
   }
+  async function saveEntry(e){ if (local){ const d = readLocal(); d.entries.push(e); writeLocal(d); return; } await post({action:"entry", ...e}); }
+  async function saveTask(t){ if (local){ const d = readLocal(); d.tasks.push(t); writeLocal(d); return; } await post({action:"task", ...t}); }
+  async function updateTask(id, patch){ if (local){ const d = readLocal(); const t = d.tasks.find(x => x.id === id); if (t) Object.assign(t, patch); writeLocal(d); return; } await post({action:"updateTask", id, ...patch}); }
 
-  // ---------- filters ----------
-  let entries = [], active = null, chips = {};
-  const membersEl = $("#members"), log = $("#log");
-  const allChip = document.createElement("button");
-  allChip.className = "chip"; allChip.type = "button";
-  allChip.addEventListener("click", () => setActive(null));
-  membersEl.appendChild(allChip);
-  MEMBERS.forEach(([n, role]) => {
-    const b = document.createElement("button");
-    b.className = "chip"; b.type = "button"; b.title = role;
-    b.addEventListener("click", () => setActive(active === n ? null : n));
-    membersEl.appendChild(b); chips[n] = b;
-  });
+  // ---------- state ----------
+  let entries = [], tasks = [], active = null, view = "board", openTask = null, chips = {};
+  let collapsed = new Set(); try{ collapsed = new Set(JSON.parse(localStorage.getItem(LOCAL_KEY + ":collapsed") || "[]")); } catch(_){}
+  function saveCollapsed(){ try{ localStorage.setItem(LOCAL_KEY + ":collapsed", JSON.stringify([...collapsed])); } catch(_){} }
+  function toggleCollapse(id){ if (collapsed.has(id)) collapsed.delete(id); else collapsed.add(id); saveCollapsed(); render(); }
+  const CHEV = "<svg viewBox='0 0 12 12' aria-hidden='true'><path d='M4 2l4 4-4 4' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>";
+  const initials = n => n.split(/\s+/).map(w => w[0]).join("").slice(0,2).toUpperCase();
+  const taskById = id => tasks.find(t => t.id === id);
+  const catOf = e => e.category || (e.task && taskById(e.task) ? taskById(e.task).category : "");
+  const entriesFor = tid => entries.filter(e => e.task === tid);
+  const subsOf = tid => tasks.filter(t => (t.parent || "") === (tid || ""));
+  const descendants = tid => subsOf(tid).flatMap(s => [s, ...descendants(s.id)]);
+  const pathOf = t => { const out = []; let cur = t; let guard = 0; while (cur && guard++ < 20){ out.unshift(cur); cur = cur.parent ? taskById(cur.parent) : null; } return out; };
+  const involves = (t, name) => (t.owners || []).includes(name) || entriesFor(t.id).some(e => (e.members || []).includes(name)) || subsOf(t.id).some(s => involves(s, name));
+
+  // member chips
+  const membersEl = $("#members");
+  const allChip = document.createElement("button"); allChip.className = "chip"; allChip.type = "button";
+  allChip.addEventListener("click", () => setActive(null)); membersEl.appendChild(allChip);
+  MEMBERS.forEach(([n, role]) => { const b = document.createElement("button"); b.className = "chip"; b.type = "button"; b.title = role; b.addEventListener("click", () => setActive(active === n ? null : n)); membersEl.appendChild(b); chips[n] = b; });
+
+  // tabs
+  const VIEWS = ["board", "tree", "log"];
+  VIEWS.forEach(v => $("#tab-" + v).addEventListener("click", () => setView(v)));
+  function syncTabs(){ VIEWS.forEach(v => $("#tab-" + v).setAttribute("aria-selected", String(v === view))); }
+  function setView(v){ view = v; syncTabs(); try{ localStorage.setItem(LOCAL_KEY + ":view", v); } catch(_){} render(); }
+  try{ view = localStorage.getItem(LOCAL_KEY + ":view") || "board"; if (!VIEWS.includes(view)) view = "board"; } catch(_){}
+  syncTabs();
 
   // ---------- render ----------
   function render(){
     entries.sort((a,b) => (b.date || "").localeCompare(a.date || "") || (b.created || "").localeCompare(a.created || ""));
+    tasks.sort((a,b) => (a.created || "").localeCompare(b.created || ""));
     const counts = {}; names.forEach(n => counts[n] = 0);
     entries.forEach(e => (e.members || []).forEach(n => { if (n in counts) counts[n]++; }));
     allChip.innerHTML = "Everyone <span class='n'>" + entries.length + "</span>";
-    names.forEach(n => chips[n].innerHTML = esc(n) + " <span class='n'>" + counts[n] + "</span>");
-    const first = entries.length ? entries[entries.length-1].date : null, last = entries.length ? entries[0].date : null;
-    $("#meta").innerHTML = entries.length + " " + (entries.length === 1 ? "entry" : "entries") + (first ? "<br>" + fmt(first) + " to " + fmt(last) : "");
+    names.forEach(n => { chips[n].innerHTML = esc(n) + " <span class='n'>" + counts[n] + "</span>"; chips[n].setAttribute("aria-pressed", String(n === active)); });
+    allChip.setAttribute("aria-pressed", String(active === null));
+    $("#n-tasks").textContent = tasks.filter(t => t.status !== "done").length || "";
+    $("#n-entries").textContent = entries.length || "";
+    const last = entries.length ? entries[0].date : null;
     $("#foot-right").textContent = last ? "Last entry " + fmt(last) : "";
+    $("#add").textContent = active ? "Add entry for " + active.split(" ")[0] : "Add entry";
 
-    log.innerHTML = "";
-    entries.forEach(e => {
-      const li = document.createElement("li");
-      li.className = "entry"; li.dataset.members = (e.members || []).join("|");
-      const who = (e.members || []).map(n => "<span data-m=\"" + esc(n) + "\">" + esc(n) + "</span>").join("");
+    $("#view-board").hidden = view !== "board"; $("#view-tree").hidden = view !== "tree"; $("#view-log").hidden = view !== "log";
+    const st = $("#state"), sa = $("#state-add"); st.hidden = true; sa.hidden = true;
+    if (view === "log") renderLog(st, sa); else if (view === "tree") renderTree(st, sa); else renderBoard(st, sa);
+  }
+
+  function renderLog(st, sa){
+    const log = $("#view-log"); log.innerHTML = "";
+    const shown = entries.filter(e => !active || (e.members || []).includes(active));
+    shown.forEach(e => {
+      const li = document.createElement("li"); li.className = "entry";
+      const cat = catOf(e), t = e.task ? taskById(e.task) : null;
+      const crumb = t ? pathOf(t).map((x, i, arr) => i === arr.length - 1 ? esc(x.title) : "<span class='crumb'>" + esc(x.title) + " › </span>").join("") : "";
+      const tags = (cat ? "<span class='tag cat'>" + esc(cat) + "</span>" : "") + (t ? "<button class='tag' type='button' data-open='" + esc(t.id) + "'>" + crumb + "</button>" : "") + (e.status ? "<span class='stpill " + esc(e.status) + "'>" + esc(stLabel[e.status] || e.status) + "</span>" : "");
+      const who = (e.members || []).map(n => "<span class='" + (active && n !== active ? "dim" : "") + "'>" + esc(n) + "</span>").join("");
       const cs = (e.contributions || []).filter(c => c[1]);
-      const contrib = cs.length ? "<ul class='contrib'>" + cs.map(c => "<li data-m=\"" + esc(c[0]) + "\"><b>" + esc(c[0]) + "</b> " + esc(c[1]) + "</li>").join("") + "</ul>" : "";
+      const contrib = cs.length ? "<ul class='contrib'>" + cs.map(c => "<li class='" + (active && c[0] === active ? "hl" : "") + "'><b>" + esc(c[0]) + "</b> " + esc(c[1]) + "</li>").join("") + "</ul>" : "";
       const links = (e.links || []).length ? "<div class='links'>" + e.links.map(l => "<a href=\"" + esc(l[1]) + "\" target=\"_blank\" rel=\"noopener\">" + esc(l[0]) + "</a>").join("") + "</div>" : "";
       const logged = e.by ? "<div class='logged'>Logged by " + esc(e.by) + (e.created ? " · " + esc(new Date(e.created).toLocaleString("en-CA", {dateStyle:"medium", timeStyle:"short"})) : "") + "</div>" : "";
-      li.innerHTML = "<div class='when'><span class='wk'>" + weekday(e.date) + "</span>" + esc(fmt(e.date)) + "</div>" +
-        "<div><h2>" + esc(e.title) + "</h2><div class='who'>" + who + "</div>" + (e.summary ? "<p>" + esc(e.summary) + "</p>" : "") + contrib + links + logged + "</div>";
+      li.innerHTML = "<div class='when'><span class='wk'>" + weekday(e.date) + "</span>" + esc(fmt(e.date)) + "</div><div>" + (tags ? "<div>" + tags + "</div>" : "") + "<h2>" + esc(e.title) + "</h2><div class='who'>" + who + "</div>" + (e.summary ? "<p>" + esc(e.summary) + "</p>" : "") + contrib + links + logged + "</div>";
       log.appendChild(li);
     });
-    setActive(active);
+    log.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => { openTask = b.dataset.open; let cur = taskById(openTask); while (cur && cur.parent){ collapsed.delete(cur.parent); cur = taskById(cur.parent); } saveCollapsed(); setView("board"); }));
+    $("#summary").innerHTML = !entries.length ? "" : active ? "Showing <strong>" + shown.length + "</strong> " + (shown.length === 1 ? "entry" : "entries") + " with contributions from <strong>" + esc(active) + "</strong>" : "Showing all <strong>" + shown.length + "</strong> entries, newest first";
+    if (!entries.length){ st.hidden = false; $("#state-h").textContent = "No entries yet"; $("#state-p").textContent = "Add the first entry to start the log."; sa.hidden = false; sa.textContent = "Add the first entry"; }
+    else if (active && !shown.length){ st.hidden = false; $("#state-h").textContent = "Nothing logged for " + active + " yet"; $("#state-p").textContent = ""; sa.hidden = false; sa.textContent = "Add entry for " + active.split(" ")[0]; }
   }
 
-  function setActive(name){
-    active = name;
-    allChip.setAttribute("aria-pressed", String(name === null));
-    names.forEach(n => chips[n].setAttribute("aria-pressed", String(n === name)));
-    let shown = 0;
-    log.querySelectorAll(".entry").forEach(li => {
-      const has = !name || li.dataset.members.split("|").includes(name);
-      li.hidden = !has; if (has) shown++;
-      li.querySelectorAll("[data-m]").forEach(el => {
-        const mine = !name || el.dataset.m === name;
-        el.classList.toggle("dim", !mine && el.tagName === "SPAN");
-        el.classList.toggle("hl", !!name && el.dataset.m === name && el.tagName === "LI");
-      });
+  function renderBoard(st, sa){
+    const board = $("#view-board"); board.innerHTML = "";
+    const visible = t => !active || involves(t, active);
+    let shownCount = 0;
+    const cats = CATEGORIES.slice(); tasks.forEach(t => { if (t.category && !cats.includes(t.category)) cats.push(t.category); });
+    cats.forEach(cat => {
+      const tops = tasks.filter(t => t.category === cat && !t.parent && visible(t));
+      const all = tasks.filter(t => t.category === cat);
+      if (!tops.length && active) return;
+      const leaves = all.filter(t => !subsOf(t.id).length), done = leaves.filter(t => t.status === "done").length;
+      const sec = document.createElement("section"); sec.className = "cat";
+      sec.innerHTML = "<div class='cat-h'><h2>" + esc(cat) + "</h2><span class='prog'>" + (leaves.length ? done + " / " + leaves.length + " done" : "") + "</span><button type='button' data-newtask=\"" + esc(cat) + "\">+ add</button></div>";
+      const ul = document.createElement("ul"); ul.className = "tasks";
+      if (!tops.length) ul.innerHTML = "<li class='tnone'>Nothing here yet. Add a subsystem (e.g. Chassis, Boom) or a task.</li>";
+      tops.forEach(t => { ul.appendChild(taskEl(t, visible)); shownCount++; });
+      sec.appendChild(ul); board.appendChild(sec);
     });
-    $("#summary").innerHTML = !entries.length ? "" : name
-      ? "Showing <strong>" + shown + "</strong> " + (shown === 1 ? "entry" : "entries") + " with contributions from <strong>" + esc(name) + "</strong>"
-      : "Showing all <strong>" + shown + "</strong> entries, newest first";
-    const st = $("#state"), sa = $("#state-add");
-    $("#add").textContent = name ? "Add entry for " + name.split(" ")[0] : "Add entry";
-    if (!entries.length){ st.hidden = false; $("#state-h").textContent = "No entries yet"; $("#state-p").textContent = "Add the first entry to start the log."; sa.hidden = false; sa.textContent = "Add the first entry"; }
-    else if (name && !shown){ st.hidden = false; $("#state-h").textContent = "Nothing logged for " + name + " yet"; $("#state-p").textContent = ""; sa.hidden = false; sa.textContent = "Add entry for " + name.split(" ")[0]; }
-    else st.hidden = true;
+    board.querySelectorAll("[data-newtask]").forEach(b => b.addEventListener("click", () => openTaskForm({category: b.dataset.newtask})));
+    const leavesAll = tasks.filter(t => !subsOf(t.id).length);
+    $("#summary").innerHTML = !tasks.length ? "" : active ? "Showing work involving <strong>" + esc(active) + "</strong>" : "<strong>" + leavesAll.filter(t => t.status === "doing").length + "</strong> in progress · <strong>" + leavesAll.filter(t => t.status === "todo").length + "</strong> to do · <strong>" + leavesAll.filter(t => t.status === "blocked").length + "</strong> blocked · <strong>" + leavesAll.filter(t => t.status === "done").length + "</strong> done";
+    if (!tasks.length){ st.hidden = false; $("#state-h").textContent = "No tasks yet"; $("#state-p").textContent = "Break the project into subsystems and tasks by category. Log entries then attach to any task or subtask so its history builds up in one place."; sa.hidden = false; sa.textContent = "Create the first task"; }
+    else if (active && !shownCount){ st.hidden = false; $("#state-h").textContent = "No tasks involving " + active + " yet"; $("#state-p").textContent = ""; }
   }
+
+  function taskEl(t, visible){
+    const kids = subsOf(t.id).filter(visible), allKids = subsOf(t.id), isGrp = allKids.length > 0;
+    const li = document.createElement("li"); li.className = "task st-" + (t.status || "todo") + (isGrp ? " grp" : "");
+    const hist = entriesFor(t.id);
+    const desc = descendants(t.id), dLeaves = desc.filter(x => !subsOf(x.id).length), dDone = dLeaves.filter(x => x.status === "done").length;
+    const dUpdates = desc.reduce((n, x) => n + entriesFor(x.id).length, 0);
+    const owners = (t.owners || []).map(n => "<span class='own " + (active && n !== active ? "dim" : "") + "'>" + esc(n) + "</span>").join("");
+    let meta = owners;
+    if (hist.length) meta += "<span>" + hist.length + (hist.length === 1 ? " update" : " updates") + ", last " + esc(fmtS(hist[0].date)) + "</span>";
+    else if (!isGrp) meta += "<span>no updates yet</span>";
+    if (isGrp) meta += "<span>" + dDone + "/" + dLeaves.length + " tasks done" + (dUpdates ? ", " + dUpdates + (dUpdates === 1 ? " update" : " updates") : "") + "</span>";
+    const bar = isGrp && dLeaves.length ? "<div class='bar'><i style='width:" + Math.round(100 * dDone / dLeaves.length) + "%'></i></div>" : "";
+    const sel = "<select class='stsel " + esc(t.status || "todo") + "' aria-label='Status'>" + STATUSES.map(([v,l]) => "<option value='" + v + "'" + (v === (t.status || "todo") ? " selected" : "") + ">" + l + "</option>").join("") + "</select>";
+    const isOpen = !collapsed.has(t.id);
+    li.innerHTML = "<div class='trow" + (isGrp ? " hasc" : "") + "'>" + (isGrp ? "<button class='chev" + (isOpen ? " open" : "") + "' type='button' aria-label='" + (isOpen ? "Collapse" : "Expand") + "' aria-expanded='" + isOpen + "'>" + CHEV + "</button>" : "") + "<span class='dot'></span><div><div class='ttitle'>" + esc(t.title) + "</div><div class='tmeta'>" + meta + "</div>" + bar + "</div>" + sel + "</div>";
+    const row = li.querySelector(".trow"), selEl = li.querySelector("select"), chevEl = li.querySelector(".chev");
+    if (chevEl) chevEl.addEventListener("click", e => { e.stopPropagation(); toggleCollapse(t.id); });
+    selEl.addEventListener("click", e => e.stopPropagation());
+    selEl.addEventListener("change", async () => { const v = selEl.value; selEl.disabled = true; try{ await updateTask(t.id, {status: v}); t.status = v; render(); } catch(ex){ alert("Couldn't update: " + ex.message); selEl.disabled = false; } });
+    row.addEventListener("click", () => { openTask = openTask === t.id ? null : t.id; render(); });
+    if (openTask === t.id){
+      const body = document.createElement("div"); body.className = "tbody";
+      const histHtml = hist.length ? "<ul class='hist'>" + hist.map(e => "<li><span class='d'>" + esc(fmtS(e.date)) + "</span><div><b>" + esc(e.title) + "</b>" + (e.status ? "<span class='stpill " + esc(e.status) + "'>" + esc(stLabel[e.status] || e.status) + "</span>" : "") + (e.summary ? "<div class='c'>" + esc(e.summary) + "</div>" : "") + ((e.contributions || []).filter(c => c[1]).length ? "<div class='c'><small>" + e.contributions.filter(c => c[1]).map(c => esc(c[0].split(" ")[0]) + ": " + esc(c[1])).join(" · ") + "</small></div>" : "") + "</div></li>").join("") + "</ul>" : "<div class='tnone'>No progress logged " + (isGrp ? "directly on this yet; see the tasks below." : "on this yet.") + "</div>";
+      const crumb = pathOf(t).slice(0, -1).map(x => esc(x.title)).join(" › ");
+      body.innerHTML = (crumb ? "<div class='logged' style='margin:0 0 8px'>" + esc(t.category) + " › " + crumb + "</div>" : "") + (t.desc ? "<div class='tdesc'>" + esc(t.desc) + "</div>" : "") + (t.by ? "<div class='logged'>Created by " + esc(t.by) + (t.created ? " · " + esc(fmt(t.created.slice(0,10))) : "") + "</div>" : "") + "<h4>History</h4>" + histHtml +
+        "<div class='tacts'><button class='btn sm' type='button' data-log>Log progress</button><button class='btn sm ghost' type='button' data-sub>Add " + (isGrp ? "task under this" : "subtask") + "</button></div>";
+      body.querySelector("[data-log]").addEventListener("click", () => openForm({task: t.id}));
+      body.querySelector("[data-sub]").addEventListener("click", () => openTaskForm({category: t.category, parent: t.id}));
+      li.appendChild(body);
+    }
+    if (kids.length && isOpen){ const ul = document.createElement("ul"); ul.className = "kids"; kids.forEach(k => ul.appendChild(taskEl(k, visible))); li.appendChild(ul); }
+    return li;
+  }
+
+  // ---------- tree view ----------
+  function renderTree(st, sa){
+    const wrap = $("#view-tree"); wrap.innerHTML = "";
+    const visible = t => !active || involves(t, active);
+    const groups = tasks.filter(t => subsOf(t.id).length);
+    const tools = document.createElement("div"); tools.className = "ttools";
+    tools.innerHTML = "<button type='button' data-exp>Expand all</button><button type='button' data-col>Collapse all</button>";
+    tools.querySelector("[data-exp]").addEventListener("click", () => { collapsed.clear(); saveCollapsed(); render(); });
+    tools.querySelector("[data-col]").addEventListener("click", () => { collapsed = new Set(groups.map(g => g.id)); saveCollapsed(); render(); });
+    wrap.appendChild(tools);
+    let shownCount = 0;
+    allCats().forEach(cat => {
+      const tops = subsOf("").filter(t => t.category === cat && visible(t));
+      if (!tops.length && active) return;
+      const all = tasks.filter(t => t.category === cat), leaves = all.filter(t => !subsOf(t.id).length), done = leaves.filter(t => t.status === "done").length;
+      const sec = document.createElement("section"); sec.className = "tcat";
+      sec.innerHTML = "<div class='tcat-h'><h2>" + esc(cat) + "</h2><span class='prog'>" + (leaves.length ? done + " / " + leaves.length + " done" : "") + "</span></div>";
+      if (!tops.length) sec.insertAdjacentHTML("beforeend", "<div class='tnone-t'>Nothing here yet.</div>");
+      else { const ul = document.createElement("ul"); ul.className = "tree"; tops.forEach(t => { ul.appendChild(treeNode(t, visible)); shownCount++; }); sec.appendChild(ul); }
+      wrap.appendChild(sec);
+    });
+    const leavesAll = tasks.filter(t => !subsOf(t.id).length);
+    $("#summary").innerHTML = !tasks.length ? "" : active ? "Showing work involving <strong>" + esc(active) + "</strong>" : "<strong>" + leavesAll.filter(t => t.status === "doing").length + "</strong> in progress · <strong>" + leavesAll.filter(t => t.status === "todo").length + "</strong> to do · <strong>" + leavesAll.filter(t => t.status === "blocked").length + "</strong> blocked · <strong>" + leavesAll.filter(t => t.status === "done").length + "</strong> done";
+    if (!tasks.length){ st.hidden = false; $("#state-h").textContent = "No tasks yet"; $("#state-p").textContent = "Create tasks on the Board and they appear here as a tree."; sa.hidden = false; sa.textContent = "Create the first task"; }
+    else if (active && !shownCount){ st.hidden = false; $("#state-h").textContent = "No tasks involving " + active + " yet"; $("#state-p").textContent = ""; }
+  }
+
+  function treeNode(t, visible){
+    const kids = subsOf(t.id).filter(visible), isGrp = subsOf(t.id).length > 0, isOpen = !collapsed.has(t.id);
+    const desc = descendants(t.id), dLeaves = desc.filter(x => !subsOf(x.id).length), dDone = dLeaves.filter(x => x.status === "done").length;
+    const hist = entriesFor(t.id);
+    const li = document.createElement("li");
+    const count = isGrp ? "<span class='tc'>" + dDone + "/" + dLeaves.length + "</span>" : (hist.length ? "<span class='tc'>" + hist.length + (hist.length === 1 ? " update" : " updates") + "</span>" : "");
+    const pill = !isGrp && t.status && t.status !== "todo" ? "<span class='stpill " + esc(t.status) + "'>" + esc(stLabel[t.status]) + "</span>" : "";
+    const who = (t.owners || []).map(n => "<span class='" + (active && n !== active ? "dim" : "") + "' title=\"" + esc(n) + "\">" + esc(initials(n)) + "</span>").join("");
+    li.innerHTML = "<div class='tn st-" + esc(t.status || "todo") + (isGrp ? " grp" : "") + (t.status === "done" ? " done" : "") + "'>" +
+      "<button class='chev" + (isOpen ? " open" : "") + (isGrp ? "" : " leaf") + "' type='button' aria-label='" + (isOpen ? "Collapse" : "Expand") + "' aria-expanded='" + isOpen + "'" + (isGrp ? "" : " tabindex='-1'") + ">" + CHEV + "</button>" +
+      "<span class='dot'></span><span class='tt' role='button' tabindex='0'>" + esc(t.title) + "</span>" + count + pill + "<span class='ti'>" + who + "</span></div>";
+    const chev = li.querySelector(".chev"); if (isGrp) chev.addEventListener("click", () => toggleCollapse(t.id));
+    const open = () => { openTask = t.id; let cur = t; while (cur && cur.parent){ collapsed.delete(cur.parent); cur = taskById(cur.parent); } saveCollapsed(); setView("board"); };
+    const tt = li.querySelector(".tt"); tt.addEventListener("click", open); tt.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); open(); } });
+    if (kids.length && isOpen){ const ul = document.createElement("ul"); kids.forEach(k => ul.appendChild(treeNode(k, visible))); li.appendChild(ul); }
+    return li;
+  }
+
+  function setActive(name){ active = name; render(); }
 
   async function refresh(){
-    try{ entries = await loadEntries(); render(); }
-    catch(err){ entries = []; render(); $("#state").hidden = false; $("#state-add").hidden = true; $("#state-h").textContent = "Couldn't load the log"; $("#state-p").textContent = "Check that BACKEND_URL is the deployed web-app link and that access is set to Anyone."; }
+    try{ const d = await loadAll(); entries = d.entries; tasks = d.tasks; render(); }
+    catch(err){ entries = []; tasks = []; render(); const st = $("#state"); st.hidden = false; $("#state-add").hidden = true; $("#state-h").textContent = "Couldn't load the log"; $("#state-p").textContent = "Check that BACKEND_URL is the deployed web-app link and that access is set to Anyone."; }
   }
 
-  // ---------- form ----------
+  // ---------- entry form ----------
   const modal = $("#modal"), form = $("#form"), err = $("#f-err"), status = $("#f-status");
   const dl = $("#member-names"); names.forEach(n => { const o = document.createElement("option"); o.value = n; dl.appendChild(o); });
   const checks = $("#f-members"), contribWrap = $("#f-contrib");
   names.forEach((n, i) => {
-    const id = "m" + i;
-    checks.insertAdjacentHTML("beforeend", "<label><input type='checkbox' id='" + id + "' value=\"" + esc(n) + "\"> " + esc(n) + "</label>");
+    checks.insertAdjacentHTML("beforeend", "<label><input type='checkbox' value=\"" + esc(n) + "\"> " + esc(n) + "</label>");
     contribWrap.insertAdjacentHTML("beforeend", "<div class='one' data-for=\"" + esc(n) + "\" hidden><label for='c" + i + "'>" + esc(n) + "</label><textarea id='c" + i + "' placeholder='What " + esc(n.split(" ")[0]) + " did'></textarea></div>");
   });
   checks.addEventListener("change", syncContrib);
-  function syncContrib(){
-    const on = [...checks.querySelectorAll("input:checked")].map(i => i.value);
-    contribWrap.querySelectorAll(".one").forEach(d => d.hidden = !on.includes(d.dataset.for));
-    contribWrap.querySelector(".none").hidden = on.length > 0;
+  function syncContrib(){ const on = [...checks.querySelectorAll("input:checked")].map(i => i.value); contribWrap.querySelectorAll(".one").forEach(d => d.hidden = !on.includes(d.dataset.for)); contribWrap.querySelector(".none").hidden = on.length > 0; }
+  const catSel = $("#f-cat"); CATEGORIES.forEach(c => catSel.insertAdjacentHTML("beforeend", "<option value=\"" + esc(c) + "\">" + esc(c) + "</option>"));
+  // Walk the tree in display order, yielding [task, depth].
+  function treeOf(cat){ const out = []; (function walk(pid, d){ subsOf(pid).filter(t => t.category === cat).forEach(t => { out.push([t, d]); walk(t.id, d + 1); }); })("", 0); return out; }
+  const allCats = () => CATEGORIES.concat(tasks.map(t => t.category).filter(c => c && !CATEGORIES.includes(c)));
+  function fillTaskSelect(sel, selected){
+    sel.innerHTML = "<option value=''>None</option>";
+    allCats().forEach(cat => {
+      const list = treeOf(cat); if (!list.length) return;
+      const g = document.createElement("optgroup"); g.label = cat;
+      list.forEach(([t, d]) => { const o = document.createElement("option"); o.value = t.id; o.textContent = "  ".repeat(d) + (d ? "↳ " : "") + t.title + (t.status === "done" ? " (done)" : ""); if (t.id === selected) o.selected = true; g.appendChild(o); });
+      sel.appendChild(g);
+    });
   }
+  const fstat = $("#f-status-sel"); STATUSES.forEach(([v,l]) => fstat.insertAdjacentHTML("beforeend", "<option value='" + v + "'>" + l + "</option>"));
+  function syncTaskFields(){
+    const t = taskById($("#f-task").value);
+    $("#f-cat-wrap").hidden = !!t; $("#f-status-wrap").hidden = !t;
+    if (t){ catSel.value = t.category; fstat.value = t.status || "todo"; }
+  }
+  $("#f-task").addEventListener("change", syncTaskFields);
 
-  function openForm(preselect){
-    form.reset(); err.hidden = true; status.textContent = "";
+  function openForm(o){
+    o = o || {}; form.reset(); err.hidden = true; status.textContent = "";
     $("#f-date").value = today();
     try{ $("#f-by").value = localStorage.getItem(LOCAL_KEY + ":by") || ""; } catch(_){}
-    const pre = typeof preselect === "string" ? preselect : active;
-    if (pre){
-      const cb = checks.querySelector("input[value=\"" + pre.replace(/"/g,'\\"') + "\"]"); if (cb) cb.checked = true;
-      if (!$("#f-by").value) $("#f-by").value = pre;
-    }
-    $("#form-h").textContent = pre ? "New entry for " + pre : "New entry";
-    syncContrib();
-    modal.classList.add("open"); $("#f-title").focus();
+    fillTaskSelect($("#f-task"), o.task || "");
+    const t = o.task ? taskById(o.task) : null;
+    syncTaskFields(); if (!t) catSel.value = "";
+    let pre = o.member || active;
+    if (t && !pre && (t.owners || []).length === 1) pre = t.owners[0];
+    const preset = t ? (t.owners || []) : (pre ? [pre] : []);
+    preset.forEach(n => { const cb = checks.querySelector("input[value=\"" + n.replace(/"/g,'\\"') + "\"]"); if (cb) cb.checked = true; });
+    if (!$("#f-by").value && pre) $("#f-by").value = pre;
+    $("#form-h").textContent = t ? "Log progress on: " + t.title : pre ? "New entry for " + pre : "New entry";
+    syncContrib(); modal.classList.add("open"); $("#f-title").focus();
   }
   function closeForm(){ modal.classList.remove("open"); }
   $("#add").addEventListener("click", () => openForm());
-  $("#state-add").addEventListener("click", () => openForm());
+  $("#state-add").addEventListener("click", () => { if (view === "board" && !tasks.length) openTaskForm(); else openForm(); });
   $("#cancel").addEventListener("click", closeForm);
   modal.addEventListener("mousedown", e => { if (e.target === modal) closeForm(); });
-  document.addEventListener("keydown", e => { if (e.key === "Escape" && modal.classList.contains("open")) closeForm(); });
 
   form.addEventListener("submit", async e => {
     e.preventDefault();
     const date = $("#f-date").value, by = $("#f-by").value.trim(), title = $("#f-title").value.trim(), summary = $("#f-summary").value.trim();
+    const task = $("#f-task").value, category = task ? (taskById(task) || {}).category || "" : catSel.value;
     const members = [...checks.querySelectorAll("input:checked")].map(i => i.value);
     const problems = [];
-    if (!date) problems.push("a date");
-    if (!by) problems.push("who is logging it");
-    if (!title) problems.push("a title");
-    if (!summary) problems.push("a progress note");
-    if (!members.length) problems.push("at least one member");
+    if (!date) problems.push("a date"); if (!by) problems.push("who is logging it"); if (!title) problems.push("a title"); if (!summary) problems.push("a progress note"); if (!members.length) problems.push("at least one member");
     if (problems.length){ err.hidden = false; err.textContent = "Add " + problems.join(", ") + "."; return; }
     const contributions = members.map(n => [n, (contribWrap.querySelector(".one[data-for=\"" + n.replace(/"/g,'\\"') + "\"] textarea") || {value:""}).value.trim()]);
     const missing = contributions.filter(c => !c[1]).map(c => c[0].split(" ")[0]);
     if (missing.length){ err.hidden = false; err.textContent = "Say what " + missing.join(", ") + " did. Instructors grade on individual contributions."; return; }
-    const links = $("#f-links").value.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => {
-      const p = l.split("|").map(s => s.trim());
-      return p.length > 1 ? [p[0], p[1]] : [l.replace(/^https?:\/\//,"").slice(0,48), l];
-    });
-    const entry = { id: Date.now().toString(36) + Math.random().toString(36).slice(2,7), created: new Date().toISOString(), date, by, title, summary, members, contributions, links };
-
+    const links = $("#f-links").value.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => { const p = l.split("|").map(s => s.trim()); return p.length > 1 ? [p[0], p[1]] : [l.replace(/^https?:\/\//,"").slice(0,48), l]; });
+    const tObj = task ? taskById(task) : null, newStatus = tObj ? fstat.value : "";
+    const entry = { id: uid(), created: new Date().toISOString(), date, by, title, summary, members, contributions, links, task, category, status: newStatus };
     $("#save").disabled = true; status.textContent = "Saving…"; err.hidden = true;
     try{
       await saveEntry(entry);
+      if (tObj && newStatus && newStatus !== tObj.status){ await updateTask(task, {status: newStatus}); tObj.status = newStatus; }
       try{ localStorage.setItem(LOCAL_KEY + ":by", by); } catch(_){}
-      closeForm();
-      entries.push(entry); render();
-      if (!local) refresh();
-    } catch(ex){ err.hidden = false; err.textContent = "Couldn't save: " + ex.message; }
+      closeForm(); entries.push(entry); if (task) openTask = task; render(); if (!local) refresh();
+    }
+    catch(ex){ err.hidden = false; err.textContent = "Couldn't save: " + ex.message; }
     finally{ $("#save").disabled = false; status.textContent = ""; }
+  });
+
+  // ---------- task form ----------
+  const tmodal = $("#tmodal"), tform = $("#tform"), terr = $("#t-err"), tmsg = $("#t-status-msg");
+  const tcat = $("#t-cat"); CATEGORIES.forEach(c => tcat.insertAdjacentHTML("beforeend", "<option value=\"" + esc(c) + "\">" + esc(c) + "</option>"));
+  const tst = $("#t-status"); STATUSES.forEach(([v,l]) => tst.insertAdjacentHTML("beforeend", "<option value='" + v + "'>" + l + "</option>"));
+  const towners = $("#t-owners"); names.forEach(n => towners.insertAdjacentHTML("beforeend", "<label><input type='checkbox' value=\"" + esc(n) + "\"> " + esc(n) + "</label>"));
+  tcat.addEventListener("change", () => fillParent(""));
+  function fillParent(selected){
+    const sel = $("#t-parent"); sel.innerHTML = "<option value=''>Top level in this category</option>";
+    treeOf(tcat.value).forEach(([t, d]) => { const o = document.createElement("option"); o.value = t.id; o.textContent = "\u00a0\u00a0".repeat(d) + (d ? "↳ " : "") + t.title; if (t.id === selected) o.selected = true; sel.appendChild(o); });
+  }
+  function openTaskForm(o){
+    o = o || {}; tform.reset(); terr.hidden = true; tmsg.textContent = "";
+    tcat.value = o.category || CATEGORIES[0]; fillParent(o.parent || ""); tst.value = "todo";
+    try{ $("#t-by").value = localStorage.getItem(LOCAL_KEY + ":by") || ""; } catch(_){}
+    if (active){ const cb = towners.querySelector("input[value=\"" + active.replace(/"/g,'\\"') + "\"]"); if (cb) cb.checked = true; if (!$("#t-by").value) $("#t-by").value = active; }
+    const p = o.parent ? taskById(o.parent) : null;
+    $("#tform-h").textContent = p ? "New item under: " + p.title : "New task or subsystem";
+    tmodal.classList.add("open"); $("#t-title").focus();
+  }
+  function closeTaskForm(){ tmodal.classList.remove("open"); }
+  $("#add-task").addEventListener("click", () => openTaskForm());
+  $("#t-cancel").addEventListener("click", closeTaskForm);
+  tmodal.addEventListener("mousedown", e => { if (e.target === tmodal) closeTaskForm(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape"){ closeForm(); closeTaskForm(); } });
+
+  tform.addEventListener("submit", async e => {
+    e.preventDefault();
+    const title = $("#t-title").value.trim(), category = tcat.value, parent = $("#t-parent").value, desc = $("#t-desc").value.trim(), by = $("#t-by").value.trim();
+    const owners = [...towners.querySelectorAll("input:checked")].map(i => i.value);
+    if (!title){ terr.hidden = false; terr.textContent = "Give the task a name."; return; }
+    const t = { id: uid(), created: new Date().toISOString(), category, parent, title, desc, status: tst.value, owners, by };
+    $("#t-save").disabled = true; tmsg.textContent = "Saving…"; terr.hidden = true;
+    try{ await saveTask(t); if (by){ try{ localStorage.setItem(LOCAL_KEY + ":by", by); } catch(_){} } closeTaskForm(); tasks.push(t); openTask = parent || t.id; setView("board"); if (!local) refresh(); }
+    catch(ex){ terr.hidden = false; terr.textContent = "Couldn't save: " + ex.message; }
+    finally{ $("#t-save").disabled = false; tmsg.textContent = ""; }
   });
 
   refresh();
