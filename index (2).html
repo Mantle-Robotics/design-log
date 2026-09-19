@@ -1,0 +1,400 @@
+<title>Mantle Design Log</title>
+<style>
+  :root{
+    --bg:#FFFFFF; --ink:#141412; --ink-2:#4A4A46; --mute:#8A8A84;
+    --rule:#E6E5E1; --rule-strong:#C9C8C2; --chip:#F2F1ED; --chip-on:#141412; --chip-on-ink:#FFFFFF; --note:#FAF8F2; --field:#FFFFFF;
+    --font:"Helvetica Neue", Helvetica, Arial, sans-serif;
+    --col:44rem;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0F0F0E; --ink:#F1F0EC; --ink-2:#BDBCB6; --mute:#7C7B75; --rule:#262623; --rule-strong:#3B3A36; --chip:#1C1C1A; --chip-on:#F1F0EC; --chip-on-ink:#0F0F0E; --note:#171716; --field:#151514;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0F0F0E; --ink:#F1F0EC; --ink-2:#BDBCB6; --mute:#7C7B75; --rule:#262623; --rule-strong:#3B3A36; --chip:#1C1C1A; --chip-on:#F1F0EC; --chip-on-ink:#0F0F0E; --note:#171716; --field:#151514;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--font); font-size:16px; line-height:1.55; padding-inline:clamp(16px,5vw,48px); padding-block:0; -webkit-font-smoothing:antialiased}
+  a{color:inherit; text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:3px; text-decoration-color:var(--rule-strong)}
+  a:hover{text-decoration-color:var(--ink)}
+  :focus-visible{outline:2px solid var(--ink); outline-offset:3px; border-radius:2px}
+  .wrap{max-width:var(--col); margin:0 auto}
+  button,input,textarea{font:inherit; color:inherit}
+
+  header{padding-block:32px 28px; border-bottom:1px solid var(--rule); display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap}
+  header h1{margin:0 0 4px; font-size:1.5rem; font-weight:700; letter-spacing:-.02em}
+  header .sub{margin:0; color:var(--ink-2); font-size:.95rem}
+  .btn{border:1px solid var(--ink); background:var(--ink); color:var(--bg); border-radius:6px; padding:9px 16px; font-size:.92rem; font-weight:500; cursor:pointer; white-space:nowrap}
+  .btn:hover{opacity:.85}
+  .btn.ghost{background:transparent; color:var(--ink)}
+  .btn[disabled]{opacity:.4; cursor:default}
+
+  .banner{margin-top:16px; background:var(--note); border:1px solid var(--rule); border-radius:8px; padding:12px 16px; font-size:.86rem; color:var(--ink-2)}
+  .banner b{color:var(--ink); font-weight:600}
+  .banner code{font-family:Menlo,Consolas,monospace; font-size:.85em; background:var(--chip); padding:1px 5px; border-radius:3px}
+
+  .project{padding-block:24px; border-bottom:1px solid var(--rule); display:flex; justify-content:space-between; gap:24px; flex-wrap:wrap; align-items:baseline}
+  .project p{margin:0; max-width:36em; color:var(--ink-2)}
+  .project .meta{font-size:.82rem; color:var(--mute); line-height:1.5; font-variant-numeric:tabular-nums}
+
+  .members{padding-block:24px; border-bottom:1px solid var(--rule); display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+  .members .label{font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--mute); margin-right:8px}
+  .chip{border:1px solid var(--rule-strong); background:var(--chip); color:var(--ink); border-radius:999px; padding:6px 12px; font-size:.86rem; cursor:pointer; display:inline-flex; gap:8px; align-items:center}
+  .chip .n{color:var(--mute); font-variant-numeric:tabular-nums}
+  .chip[aria-pressed="true"]{background:var(--chip-on); color:var(--chip-on-ink); border-color:var(--chip-on)}
+  .chip[aria-pressed="true"] .n{color:inherit; opacity:.7}
+
+  .summary{padding-block:20px 0; font-size:.85rem; color:var(--mute)}
+  .summary strong{color:var(--ink); font-weight:500}
+
+  .log{list-style:none; margin:0; padding:0}
+  .entry{display:grid; grid-template-columns:8.5rem 1fr; gap:24px; padding-block:28px; border-bottom:1px solid var(--rule)}
+  .entry[hidden]{display:none}
+  .when{font-size:.85rem; color:var(--mute); line-height:1.5; padding-top:3px; font-variant-numeric:tabular-nums}
+  .when .wk{display:block; font-size:.75rem; letter-spacing:.04em; text-transform:uppercase}
+  .entry h2{margin:0 0 6px; font-size:1.15rem; font-weight:700; letter-spacing:-.015em; line-height:1.3}
+  .who{display:flex; flex-wrap:wrap; gap:6px; margin:0 0 14px}
+  .who span{font-size:.78rem; padding:2px 8px; border:1px solid var(--rule-strong); border-radius:999px; color:var(--ink-2)}
+  .who span.dim{opacity:.35}
+  .entry p{margin:0 0 12px; max-width:36em; white-space:pre-line}
+  .contrib{margin:14px 0 0; padding:0 0 0 14px; list-style:none; border-left:2px solid var(--rule-strong); display:grid; gap:8px}
+  .contrib li{font-size:.93rem; color:var(--ink-2); max-width:36em; white-space:pre-line}
+  .contrib li b{color:var(--ink); font-weight:600}
+  .contrib li.hl{color:var(--ink)}
+  .links{margin:12px 0 0; font-size:.85rem; display:flex; gap:14px; flex-wrap:wrap}
+  .logged{margin-top:10px; font-size:.75rem; color:var(--mute)}
+  @media (max-width:560px){ .entry{grid-template-columns:1fr; gap:8px} }
+
+  .state{padding-block:56px; text-align:center; color:var(--mute)}
+  .state h2{font-size:1.1rem; font-weight:600; color:var(--ink); margin:0 0 8px}
+  .state p{margin:0 auto; max-width:32em}
+
+  footer{padding-block:28px 48px; font-size:.8rem; color:var(--mute); display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap}
+
+  /* ---- add-entry form ---- */
+  .modal{position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:flex-start; justify-content:center; padding:24px 16px; z-index:10; overflow-y:auto}
+  .modal.open{display:flex}
+  .panel{background:var(--bg); border:1px solid var(--rule); border-radius:10px; width:min(680px,100%); padding:24px clamp(16px,4vw,32px) 28px; margin-block:auto}
+  .panel h2{margin:0 0 20px; font-size:1.25rem; font-weight:700; letter-spacing:-.02em}
+  .f{display:grid; gap:6px; margin-bottom:18px}
+  .f label{font-size:.82rem; font-weight:600; color:var(--ink-2)}
+  .f .hint{font-size:.78rem; color:var(--mute); font-weight:400}
+  .f input[type=text],.f input[type=date],.f textarea{width:100%; border:1px solid var(--rule-strong); border-radius:6px; background:var(--field); padding:9px 11px; font-size:.95rem; line-height:1.45}
+  .f textarea{min-height:88px; resize:vertical}
+  .f input:focus,.f textarea:focus{outline:2px solid var(--ink); outline-offset:1px; border-color:var(--ink)}
+  .row{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+  @media (max-width:520px){ .row{grid-template-columns:1fr} }
+  .checks{display:flex; flex-wrap:wrap; gap:8px}
+  .checks label{display:inline-flex; align-items:center; gap:8px; border:1px solid var(--rule-strong); border-radius:999px; padding:6px 12px 6px 10px; font-size:.86rem; cursor:pointer; font-weight:400; color:var(--ink)}
+  .checks label:has(input:checked){background:var(--chip-on); color:var(--chip-on-ink); border-color:var(--chip-on)}
+  .checks input{margin:0; accent-color:var(--ink)}
+  .who-did{display:grid; gap:12px}
+  .who-did .one{display:grid; gap:4px}
+  .who-did .one[hidden]{display:none}
+  .who-did .one label{font-size:.82rem; color:var(--ink-2)}
+  .who-did .one textarea{min-height:56px}
+  .who-did .none{font-size:.85rem; color:var(--mute); font-style:normal}
+  .err{color:#B3261E; font-size:.85rem; margin:-8px 0 14px}
+  :root[data-theme="dark"] .err{color:#F28B82}
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .err{color:#F28B82} }
+  .actions{display:flex; justify-content:flex-end; gap:10px; margin-top:6px; align-items:center}
+  .actions .status{margin-right:auto; font-size:.85rem; color:var(--mute)}
+  @media (prefers-reduced-motion:no-preference){ html{scroll-behavior:smooth} }
+</style>
+
+<script>
+/* ============================================================
+   CONFIG
+   BACKEND_URL: the Google Apps Script web-app URL (see setup in
+   the reply / mantle-log-backend.gs). Leave empty to run in
+   browser-only mode: entries are kept in this browser's storage
+   so the page can be tried before the backend exists.
+   ============================================================ */
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycbyzVt2cq7GBW1C3IXq-DQPjI50txGUa8CIa9V2KS1wtnu1bqnUnxzp3fzO9meh7GgJX/exec";
+
+const PROJECT = {
+  team: "Mantle Robotics",
+  course: "MTE 481 · Fall 2026",
+  title: "Autonomous retrofit kit for underground jumbo drills",
+  blurb: "A running record of design work on the project: what was done, by whom, and when."
+};
+
+const MEMBERS = [
+  ["Matthew Bridger", "Hydraulics & field"],
+  ["Jivan Kesan", "Software & autonomy"],
+  ["Arjun Mandair", "Electrical"],
+  ["Kishan Muhundhan", "Robotics hardware"],
+  ["Shiv Patel", "Robotics hardware"]
+];
+</script>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1 id="title"></h1>
+      <p class="sub" id="subtitle"></p>
+    </div>
+    <button class="btn" id="add" type="button">Add entry</button>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <section class="project">
+    <p id="blurb"></p>
+    <div class="meta" id="meta"></div>
+  </section>
+
+  <section class="members" id="members" aria-label="Filter by member">
+    <span class="label">Members</span>
+  </section>
+
+  <div class="summary" id="summary"></div>
+
+  <ol class="log" id="log"></ol>
+
+  <div class="state" id="state" hidden>
+    <h2 id="state-h"></h2>
+    <p id="state-p"></p>
+    <button class="btn ghost" id="state-add" type="button" style="margin-top:16px" hidden>Add entry</button>
+  </div>
+
+  <footer>
+    <span id="foot-left"></span>
+    <span id="foot-right"></span>
+  </footer>
+</div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="form-h">
+  <form class="panel" id="form" novalidate>
+    <h2 id="form-h">New entry</h2>
+
+    <div class="row">
+      <div class="f">
+        <label for="f-date">Date of the work</label>
+        <input type="date" id="f-date" name="date" required>
+      </div>
+      <div class="f">
+        <label for="f-by">Logged by</label>
+        <input type="text" id="f-by" name="by" list="member-names" placeholder="Your name" autocomplete="off" required>
+        <datalist id="member-names"></datalist>
+      </div>
+    </div>
+
+    <div class="f">
+      <label for="f-title">Title <span class="hint">one line, what got done</span></label>
+      <input type="text" id="f-title" name="title" required maxlength="140">
+    </div>
+
+    <div class="f">
+      <label for="f-summary">Progress <span class="hint">what was worked on, decisions made, what's next</span></label>
+      <textarea id="f-summary" name="summary" required></textarea>
+    </div>
+
+    <div class="f">
+      <label>Who worked on this</label>
+      <div class="checks" id="f-members"></div>
+    </div>
+
+    <div class="f">
+      <label>Individual contributions <span class="hint">one line per selected member</span></label>
+      <div class="who-did" id="f-contrib"><span class="none">Select members above.</span></div>
+    </div>
+
+    <div class="f">
+      <label for="f-links">Links <span class="hint">optional, one per line: CAD, docs, photos. Use "Label | URL" to name a link</span></label>
+      <textarea id="f-links" name="links" style="min-height:56px"></textarea>
+    </div>
+
+    <div class="err" id="f-err" hidden></div>
+
+    <div class="actions">
+      <span class="status" id="f-status"></span>
+      <button class="btn ghost" type="button" id="cancel">Cancel</button>
+      <button class="btn" type="submit" id="save">Save entry</button>
+    </div>
+  </form>
+</div>
+
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const fmt = d => { const t = new Date(d + "T12:00:00"); return isNaN(t) ? d : t.toLocaleDateString("en-CA", {year:"numeric", month:"short", day:"numeric"}); };
+  const weekday = d => { const t = new Date(d + "T12:00:00"); return isNaN(t) ? "" : t.toLocaleDateString("en-CA", {weekday:"long"}); };
+  const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+  const names = MEMBERS.map(m => m[0]);
+  const LOCAL_KEY = "mantle-design-log";
+  const local = !BACKEND_URL;
+
+  $("#title").textContent = PROJECT.team + " · Design Log";
+  $("#subtitle").textContent = PROJECT.title;
+  $("#blurb").textContent = PROJECT.blurb;
+  $("#foot-left").textContent = PROJECT.team + " · " + PROJECT.course;
+  if (local){
+    const b = $("#banner"); b.hidden = false;
+    b.innerHTML = "<b>Browser-only mode.</b> Entries are saved in this browser until <code>BACKEND_URL</code> is set, so nobody else can see them yet.";
+  }
+
+  // ---------- storage ----------
+  async function loadEntries(){
+    if (local){ try{ return JSON.parse(localStorage.getItem(LOCAL_KEY) || "[]"); } catch(_){ return []; } }
+    const res = await fetch(BACKEND_URL + "?t=" + Date.now(), {cache:"no-store"});
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    return Array.isArray(data) ? data : (data.entries || []);
+  }
+  async function saveEntry(e){
+    if (local){
+      const all = await loadEntries(); all.push(e);
+      try{ localStorage.setItem(LOCAL_KEY, JSON.stringify(all)); } catch(_){ throw new Error("This browser is blocking storage."); }
+      return;
+    }
+    // text/plain avoids a CORS preflight; the script parses the JSON body.
+    const res = await fetch(BACKEND_URL, {method:"POST", body: JSON.stringify(e)});
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const out = await res.json().catch(() => ({ok:true}));
+    if (out && out.ok === false) throw new Error(out.error || "Save failed");
+  }
+
+  // ---------- filters ----------
+  let entries = [], active = null, chips = {};
+  const membersEl = $("#members"), log = $("#log");
+  const allChip = document.createElement("button");
+  allChip.className = "chip"; allChip.type = "button";
+  allChip.addEventListener("click", () => setActive(null));
+  membersEl.appendChild(allChip);
+  MEMBERS.forEach(([n, role]) => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.type = "button"; b.title = role;
+    b.addEventListener("click", () => setActive(active === n ? null : n));
+    membersEl.appendChild(b); chips[n] = b;
+  });
+
+  // ---------- render ----------
+  function render(){
+    entries.sort((a,b) => (b.date || "").localeCompare(a.date || "") || (b.created || "").localeCompare(a.created || ""));
+    const counts = {}; names.forEach(n => counts[n] = 0);
+    entries.forEach(e => (e.members || []).forEach(n => { if (n in counts) counts[n]++; }));
+    allChip.innerHTML = "Everyone <span class='n'>" + entries.length + "</span>";
+    names.forEach(n => chips[n].innerHTML = esc(n) + " <span class='n'>" + counts[n] + "</span>");
+    const first = entries.length ? entries[entries.length-1].date : null, last = entries.length ? entries[0].date : null;
+    $("#meta").innerHTML = entries.length + " " + (entries.length === 1 ? "entry" : "entries") + (first ? "<br>" + fmt(first) + " to " + fmt(last) : "");
+    $("#foot-right").textContent = last ? "Last entry " + fmt(last) : "";
+
+    log.innerHTML = "";
+    entries.forEach(e => {
+      const li = document.createElement("li");
+      li.className = "entry"; li.dataset.members = (e.members || []).join("|");
+      const who = (e.members || []).map(n => "<span data-m=\"" + esc(n) + "\">" + esc(n) + "</span>").join("");
+      const cs = (e.contributions || []).filter(c => c[1]);
+      const contrib = cs.length ? "<ul class='contrib'>" + cs.map(c => "<li data-m=\"" + esc(c[0]) + "\"><b>" + esc(c[0]) + "</b> " + esc(c[1]) + "</li>").join("") + "</ul>" : "";
+      const links = (e.links || []).length ? "<div class='links'>" + e.links.map(l => "<a href=\"" + esc(l[1]) + "\" target=\"_blank\" rel=\"noopener\">" + esc(l[0]) + "</a>").join("") + "</div>" : "";
+      const logged = e.by ? "<div class='logged'>Logged by " + esc(e.by) + (e.created ? " · " + esc(new Date(e.created).toLocaleString("en-CA", {dateStyle:"medium", timeStyle:"short"})) : "") + "</div>" : "";
+      li.innerHTML = "<div class='when'><span class='wk'>" + weekday(e.date) + "</span>" + esc(fmt(e.date)) + "</div>" +
+        "<div><h2>" + esc(e.title) + "</h2><div class='who'>" + who + "</div>" + (e.summary ? "<p>" + esc(e.summary) + "</p>" : "") + contrib + links + logged + "</div>";
+      log.appendChild(li);
+    });
+    setActive(active);
+  }
+
+  function setActive(name){
+    active = name;
+    allChip.setAttribute("aria-pressed", String(name === null));
+    names.forEach(n => chips[n].setAttribute("aria-pressed", String(n === name)));
+    let shown = 0;
+    log.querySelectorAll(".entry").forEach(li => {
+      const has = !name || li.dataset.members.split("|").includes(name);
+      li.hidden = !has; if (has) shown++;
+      li.querySelectorAll("[data-m]").forEach(el => {
+        const mine = !name || el.dataset.m === name;
+        el.classList.toggle("dim", !mine && el.tagName === "SPAN");
+        el.classList.toggle("hl", !!name && el.dataset.m === name && el.tagName === "LI");
+      });
+    });
+    $("#summary").innerHTML = !entries.length ? "" : name
+      ? "Showing <strong>" + shown + "</strong> " + (shown === 1 ? "entry" : "entries") + " with contributions from <strong>" + esc(name) + "</strong>"
+      : "Showing all <strong>" + shown + "</strong> entries, newest first";
+    const st = $("#state"), sa = $("#state-add");
+    $("#add").textContent = name ? "Add entry for " + name.split(" ")[0] : "Add entry";
+    if (!entries.length){ st.hidden = false; $("#state-h").textContent = "No entries yet"; $("#state-p").textContent = "Add the first entry to start the log."; sa.hidden = false; sa.textContent = "Add the first entry"; }
+    else if (name && !shown){ st.hidden = false; $("#state-h").textContent = "Nothing logged for " + name + " yet"; $("#state-p").textContent = ""; sa.hidden = false; sa.textContent = "Add entry for " + name.split(" ")[0]; }
+    else st.hidden = true;
+  }
+
+  async function refresh(){
+    try{ entries = await loadEntries(); render(); }
+    catch(err){ entries = []; render(); $("#state").hidden = false; $("#state-add").hidden = true; $("#state-h").textContent = "Couldn't load the log"; $("#state-p").textContent = "Check that BACKEND_URL is the deployed web-app link and that access is set to Anyone."; }
+  }
+
+  // ---------- form ----------
+  const modal = $("#modal"), form = $("#form"), err = $("#f-err"), status = $("#f-status");
+  const dl = $("#member-names"); names.forEach(n => { const o = document.createElement("option"); o.value = n; dl.appendChild(o); });
+  const checks = $("#f-members"), contribWrap = $("#f-contrib");
+  names.forEach((n, i) => {
+    const id = "m" + i;
+    checks.insertAdjacentHTML("beforeend", "<label><input type='checkbox' id='" + id + "' value=\"" + esc(n) + "\"> " + esc(n) + "</label>");
+    contribWrap.insertAdjacentHTML("beforeend", "<div class='one' data-for=\"" + esc(n) + "\" hidden><label for='c" + i + "'>" + esc(n) + "</label><textarea id='c" + i + "' placeholder='What " + esc(n.split(" ")[0]) + " did'></textarea></div>");
+  });
+  checks.addEventListener("change", syncContrib);
+  function syncContrib(){
+    const on = [...checks.querySelectorAll("input:checked")].map(i => i.value);
+    contribWrap.querySelectorAll(".one").forEach(d => d.hidden = !on.includes(d.dataset.for));
+    contribWrap.querySelector(".none").hidden = on.length > 0;
+  }
+
+  function openForm(preselect){
+    form.reset(); err.hidden = true; status.textContent = "";
+    $("#f-date").value = today();
+    try{ $("#f-by").value = localStorage.getItem(LOCAL_KEY + ":by") || ""; } catch(_){}
+    const pre = typeof preselect === "string" ? preselect : active;
+    if (pre){
+      const cb = checks.querySelector("input[value=\"" + pre.replace(/"/g,'\\"') + "\"]"); if (cb) cb.checked = true;
+      if (!$("#f-by").value) $("#f-by").value = pre;
+    }
+    $("#form-h").textContent = pre ? "New entry for " + pre : "New entry";
+    syncContrib();
+    modal.classList.add("open"); $("#f-title").focus();
+  }
+  function closeForm(){ modal.classList.remove("open"); }
+  $("#add").addEventListener("click", () => openForm());
+  $("#state-add").addEventListener("click", () => openForm());
+  $("#cancel").addEventListener("click", closeForm);
+  modal.addEventListener("mousedown", e => { if (e.target === modal) closeForm(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && modal.classList.contains("open")) closeForm(); });
+
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const date = $("#f-date").value, by = $("#f-by").value.trim(), title = $("#f-title").value.trim(), summary = $("#f-summary").value.trim();
+    const members = [...checks.querySelectorAll("input:checked")].map(i => i.value);
+    const problems = [];
+    if (!date) problems.push("a date");
+    if (!by) problems.push("who is logging it");
+    if (!title) problems.push("a title");
+    if (!summary) problems.push("a progress note");
+    if (!members.length) problems.push("at least one member");
+    if (problems.length){ err.hidden = false; err.textContent = "Add " + problems.join(", ") + "."; return; }
+    const contributions = members.map(n => [n, (contribWrap.querySelector(".one[data-for=\"" + n.replace(/"/g,'\\"') + "\"] textarea") || {value:""}).value.trim()]);
+    const missing = contributions.filter(c => !c[1]).map(c => c[0].split(" ")[0]);
+    if (missing.length){ err.hidden = false; err.textContent = "Say what " + missing.join(", ") + " did. Instructors grade on individual contributions."; return; }
+    const links = $("#f-links").value.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => {
+      const p = l.split("|").map(s => s.trim());
+      return p.length > 1 ? [p[0], p[1]] : [l.replace(/^https?:\/\//,"").slice(0,48), l];
+    });
+    const entry = { id: Date.now().toString(36) + Math.random().toString(36).slice(2,7), created: new Date().toISOString(), date, by, title, summary, members, contributions, links };
+
+    $("#save").disabled = true; status.textContent = "Saving…"; err.hidden = true;
+    try{
+      await saveEntry(entry);
+      try{ localStorage.setItem(LOCAL_KEY + ":by", by); } catch(_){}
+      closeForm();
+      entries.push(entry); render();
+      if (!local) refresh();
+    } catch(ex){ err.hidden = false; err.textContent = "Couldn't save: " + ex.message; }
+    finally{ $("#save").disabled = false; status.textContent = ""; }
+  });
+
+  refresh();
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && !local) refresh(); });
+})();
+</script>
